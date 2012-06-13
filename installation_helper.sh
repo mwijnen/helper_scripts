@@ -30,13 +30,32 @@ function message_question {
 }
 
 function install_app {
-  message_question "install "$1"? (Y/N)" 
+  message_question "install "$1"? ("$2")" 
   read PROCEED
   if [ "$PROCEED" = "Y" ]; then
     message_info "proceed with installation of "$1"..."	
     RES=1;
-  else
-    RES=0;
+  else 
+    if [ "$PROCEED" = "I" ]; then
+      RES=2
+    else
+      RES=0;
+    fi 
+  fi
+}
+
+function remove_app {
+  message_question "remove "$1"? ("$2")"
+  read PROCEES
+  if [ "$PROCEED" = "Y" ]; then
+    message_info "proceed with removal of "$1"..."	
+    RES=1;
+  else 
+    if [ "$PROCEED" = "I" ]; then
+      RES=2
+    else
+      RES=0;
+    fi
   fi
 }
 
@@ -45,31 +64,31 @@ message_info "Author: Marcel Wijnen"
 message_info "Date: Summer 2012"
 
 #Apache2
-install_app "APACHE2"
+install_app "APACHE2" "Y/N"
 if [ $RES = 1 ]; then
   sudo apt-get install apache2
 fi
 
 #Ruby version manager
-install_app "RVM"
+install_app "RVM" "Y/N"
 if [ "$RES" = 1 ]; then
   curl -L get.rvm.io | bash -s stable
   source /home/tiny/.rvm/scripts/rvm
 fi
 
 #Build essential
-install_app "BUILD-ESSENTIAL"
+install_app "BUILD-ESSENTIAL" "Y/N"
 if [ "$RES" = 1 ]; then
   sudo apt-get install build-essential openssl libreadline6 libreadline6-dev curl git-core zlib1g zlib1g-dev libssl-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt-dev autoconf libc6-dev ncurses-dev automake libtool bison subversion
 fi
 
 #MongoDB
-install_app "MONGODB"
-if [ "$RES" = 1 ]; then 
+install_app "MONGODB" "I/N"
+if [ "$RES" = 2 ]; then 
   message_notice "This installation is performed according to: http://brilliantcorners.org/2010/12/a-better-way-to-install-mongodb/"
   action_required_notice "ADD: deb http://downloads.mongodb.org/distros/ubuntu 10.10 10gen TO: /etc/apt/sources.list" 
   message_notice "ONLY proceed after this has been done!"
-  install_app "MONGODB" 
+  install_app "MONGODB" "Y/N"
   if [ "$RES" = 1 ]; then
     sudo apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10
     sudo apt-get update
@@ -85,7 +104,7 @@ if [ "$RES" = 1 ]; then
 fi
 
 #Rubies
-install_app "RUBIES"
+install_app "RUBIES" "Y/N"
 if [ "$RES" = 1 ]; then
   rvm install ruby-1.8.7-head 
   rvm install ruby-1.9.3
@@ -93,7 +112,7 @@ if [ "$RES" = 1 ]; then
 fi
 
 #Node.js
-install_app "NODE.JS"
+install_app "NODE.JS" "Y/N"
 if [ "$RES" = 1 ]; then
   message_notice "Node.js is needed in order for RoR applications to work with javascript. This installation is according to: https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager"
   sudo apt-get install python-software-properties
@@ -103,8 +122,8 @@ if [ "$RES" = 1 ]; then
 fi
 
 #Phussion passenger
-install_app "PHUSSION-PASSENGER"
-if [ "$RES" = 1 ]; then
+install_app "PHUSSION-PASSENGER" "I/N"
+if [ "$RES" = 2 ]; then
   message_notice "It is important to use Phussion Passenger correctly in combination with RVM. This installation is according to: http://blog.phusion.nl/2010/09/21/phusion-passenger-running-multiple-ruby-versions/"
   action_required_notice "RUN: rvm --default use 1.9.3-head"
   action_required_notice "RUN: rvm gemset create rails323"
@@ -114,13 +133,13 @@ if [ "$RES" = 1 ]; then
 fi
 
 #Rails
-install_app "RAILS"
-if [ "$RES" = 1 ]; then
+install_app "RAILS" "I/N"
+if [ "$RES" = 2 ]; then
   action_required_notice "rvm all do gem install rails -v 3.2.3"
 fi
 
 #GitHub
-install_app "GIT-HUB"
+install_app "GIT-HUB" "Y/N"
 if [ "$RES" = 1 ]; then
   git config --global user.name "Marcel"
   git config --global user.email mmfwwijnen@gmail.com
@@ -128,14 +147,14 @@ if [ "$RES" = 1 ]; then
 fi
 
 #ImageMagic
-install_app "IMAGE-MAGIC"
-if [ "$RES" = 1 ]; then
+install_app "IMAGE-MAGIC" "I/N"
+if [ "$RES" = 2 ]; then
   action_required_notice "sudo apt-get update"
   action_required_notice "sudo apt-get install imagemagick --fix-missing"
 fi
 
 #ZeroMQ
-install_app "ZEROMQ"
+install_app "ZEROMQ" "Y/N"
 if [ "$RES" = 1 ]; then
   message_notice "Install required packages for installation"
   sudo apt-get install libtool autoconf automake
@@ -151,5 +170,15 @@ if [ "$RES" = 1 ]; then
   message_notice "RUN: sudo ldconfig" 
 fi
 
+#NGINX
+install_app "NGINX" "Y/N"
+if [ "$RES" = 1 ]; then
+  sudo apt-get install nginx
+fi
 
+#AUTO-REMOVE-UNNEEDED_PACKAGES
+remove_app "UNREQUIRED-PACKAGES" "Y/N"
+if [ "$RES" = 1 ]; then
+  sudo apt-get autoremove 
+fi
 
